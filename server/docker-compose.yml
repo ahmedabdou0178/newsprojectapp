@@ -1,0 +1,47 @@
+version: "2.4"
+services:
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - newsprojectnetwork
+    environment:
+      - REDIS_PASSWORD=Passw0rd123
+  dataBase:
+    image: "bitnami/mongodb:4.4"
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodbdata:/data/db:rw
+    networks:
+      - newsprojectnetwork
+  newsprojectfrontend:
+    build:
+      context: ../client/ 
+      dockerfile: Dockerfile-frontend
+    ports:
+      - "8080:8080"
+    networks:
+      - newsprojectnetwork
+  newsprojectbackend:
+    build:
+      context: .
+      dockerfile: Dockerfile-server
+    ports:
+      - "5000:5000"
+    restart: always
+    env_file:
+      - ./app.env
+    networks:
+      - newsprojectnetwork
+    depends_on:
+      - dataBase
+      - redis
+networks:
+  newsprojectnetwork:
+volumes:
+  mongodbdata:
+    driver: local
